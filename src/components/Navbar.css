@@ -1,0 +1,25 @@
+/* Navbar.css */
+.navbar {
+    background-color: teal;
+    padding: 15px;
+    display: flex; /* Align links horizontally */
+    justify-content: center; /* Center links horizontally */
+    align-items: center; /* Align links vertically */
+    gap: 15px;
+  }
+  
+  .navbar a {
+    color: white;
+    text-decoration: none;
+    padding: 10px 15px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    transition: background 0.3s ease;
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
+  .navbar a:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+  }
+  
