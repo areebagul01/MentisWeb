@@ -1,0 +1,78 @@
+.auth-container {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+  }
+  
+  .top-image {
+    position: absolute;
+    top: -50px;
+    left: -20px;
+    width: 250px; /* Adjust based on your image size */
+    height: auto;
+  }
+  
+  .bottom-image {
+    position: absolute;
+    bottom: -40px;
+    right: -20px;
+    width: 250px; /* Adjust based on your image size */
+    height: auto;
+  }
+  
+  .auth-content {
+    z-index: 1; /* Ensure content stays above images */
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 30px 0;
+  }
+  
+  .auth-form input {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+  }
+  
+  .auth-button {
+    background-color: teal;
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  .google-auth {
+    margin-top: 20px;
+  }
+  
+  .google-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px;
+    background-color: rgb(212, 211, 211);
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  .google-button img {
+    width: 24px;
+    height: 24px;
+  }
