@@ -57,7 +57,7 @@ const Questionnaire = () => {
 
     // Submit logic here
     console.log({ gender, dob, answers });
-    navigate('/diagnosis-result');
+    navigate('/interests');
   };
 
   const handleAnswer = (featureIndex, value) => {

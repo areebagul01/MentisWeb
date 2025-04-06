@@ -9,11 +9,12 @@ import Navbar from "./components/Navbar";
 import Login from "./components/Login";
 import SignUp from "./components/SignUp";
 import Questionnaire from "./components/Questionnaire";
+import Interests from './components/Interests';
 import './App.css';
 
 const ConditionalNavbar = () => {
   const location = useLocation();
-  const hideNavbarPaths = ['/login', '/signup', '/questionnaire'];
+  const hideNavbarPaths = ['/login', '/signup', '/questionnaire', '/interests'];
   return !hideNavbarPaths.includes(location.pathname) ? <Navbar /> : null;
 };
 
@@ -30,6 +31,7 @@ function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
         <Route path="/questionnaire" element={<Questionnaire />} />
+        <Route path="/interests" element={<Interests fromQuestionnaire={true} />} />
       </Routes>
     </Router>
   );
