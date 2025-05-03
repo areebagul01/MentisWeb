@@ -87,4 +87,78 @@ router.post('/signup', async (req, res) => {
   }
 });
 
+// Update user with ADHD type
+router.patch('/update-user', async (req, res) => {
+  try {
+    const { email, adhdType } = req.body;
+    
+    const updatedUser = await User.findOneAndUpdate(
+      { email: email.toLowerCase().trim() },
+      { $set: { adhdtype: adhdType } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error('Update error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update user interests
+router.put('/interests', async (req, res) => {
+  try {
+    const { email, interestSelected } = req.body;
+    
+    const updatedUser = await User.findOneAndUpdate(
+      { email: email.toLowerCase().trim() },
+      { $set: { interests: interestSelected } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Interests updated successfully',
+      interests: updatedUser.interests
+    });
+    
+  } catch (error) {
+    console.error('Interest update error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get user interests
+router.get('/interests', async (req, res) => {
+  try {
+    const { email } = req.query;
+    
+    const user = await User.findOne(
+      { email: email.toLowerCase().trim() },
+      { interests: 1 }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      success: true,
+      interests: user.interests || []
+    });
+    
+  } catch (error) {
+    console.error('Interest fetch error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

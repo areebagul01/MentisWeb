@@ -77,32 +77,44 @@ const questions = [
       };
     
       try {
-        const response = await fetch('http://192.168.100.55:8000/predict', {
+        // Get user email from localStorage
+        const userEmail = localStorage.getItem('userEmail');
+        if (!userEmail) {
+          throw new Error('User session expired - please login again');
+        }
+    
+        // Existing diagnosis request
+        const diagnosisResponse = await fetch('http://192.168.100.55:8000/predict', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
     
-        if (!response.ok) {
-          throw new Error('Failed to connect to server');
-        }
-        else {
-          console.log("Response received");
+        if (!diagnosisResponse.ok) {
+          throw new Error('Diagnosis failed');
         }
     
-        const resData = await response.json();
-        const result = resData.result;
+        const resData = await diagnosisResponse.json();
+        const diagnosis = resData.type;  // Use the 'type' field from response
     
-        const resultMap = ['Combined', 'False', 'Hyperactive', 'Inattentive'];
-        const diagnosis = resultMap[result] || 'Unknown';
+        // Update user in MongoDB
+        const updateResponse = await fetch('http://localhost:5000/api/auth/update-user', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: userEmail,
+            adhdType: diagnosis
+          })
+        });
     
+        if (!updateResponse.ok) {
+          throw new Error('Failed to save diagnosis');
+        }
+    
+        // Store locally
         localStorage.setItem('adhdtype', diagnosis);
-        localStorage.setItem('dob', dob);
-        localStorage.setItem('gender', gender);
-    
-        if (diagnosis === 'False') {
+        
+        if (diagnosis === 'No ADHD') {
           alert('You do not have ADHD. Redirecting to launch screen.');
           navigate('/launch');
         } else {
@@ -111,8 +123,12 @@ const questions = [
             state: { fromQuestionnaire: true }
           });
         }
+    
       } catch (err) {
         alert('Error: ' + err.message);
+        if (err.message.includes('session expired')) {
+          navigate('/login');
+        }
       }
     };    
   
