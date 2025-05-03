@@ -36,6 +36,12 @@ const userSchema = new mongoose.Schema({
     type: [String],
     default: []
   },
+  dailyTasks: {
+    type: [String]
+  },
+  lastTaskDate: {
+    type: Date
+  },
   createdAt: {
     type: Date,
     default: Date.now

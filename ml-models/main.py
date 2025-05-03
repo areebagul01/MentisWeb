@@ -99,44 +99,63 @@ async def predict_adhd(input_data: DiagnosisInput):
 
 def generate_tasks(adhd_type: str, interest: str, num_tasks: int = 5):
     try:
-        prompt = f"Generate ADHD-friendly tasks for {adhd_type} subtype focusing on {interest}:"
+        prompt = f"Generate ADHD-friendly tasks for {adhd_type} subtype focusing on {interest}:\n"
         
         inputs = task_tokenizer(
-            prompt, 
-            return_tensors="pt", 
-            max_length=512, 
-            truncation=True
+            prompt,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=512
         ).to(device)
-        
+
         outputs = task_generator_model.generate(
             inputs.input_ids,
             attention_mask=inputs.attention_mask,
-            max_new_tokens=100,
+            max_new_tokens=50,  # Reduced from 100 for better coherence
+            pad_token_id=task_tokenizer.eos_token_id,
             do_sample=True,
             temperature=0.85,
+            top_k=50,
             top_p=0.92,
-            num_return_sequences=num_tasks
+            repetition_penalty=1.7,
+            no_repeat_ngram_size=3,
+            num_return_sequences=num_tasks * 3  # Generate more to account for duplicates
         )
-        
-        decoded_tasks = [
-            task_tokenizer.decode(o, skip_special_tokens=True, clean_up_tokenization_spaces=True).strip()
-            for o in outputs
+
+        # Decode and clean tasks
+        generated_tasks = [
+            task_tokenizer.decode(
+                output,
+                skip_special_tokens=True,
+                clean_up_tokenization_spaces=True
+            ).strip()
+            for output in outputs
         ]
-        
-        # Remove duplicates while preserving order
-        unique_tasks = list(OrderedDict.fromkeys(decoded_tasks))
-        return unique_tasks[:num_tasks]
-    
+
+        # Remove empty strings and duplicates while preserving order
+        filtered_tasks = list(OrderedDict.fromkeys(
+            [task for task in generated_tasks if task]
+        ))
+
+        return filtered_tasks[:num_tasks]  # Return requested number of tasks
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Task generation failed: {str(e)}")
 
+
+# ----------------------------------------------------------------------------------------------------- DAILY TASKS
+
 @app.post("/daily-tasks")
-async def generate_daily_tasks(request: TaskGenerationInput):
+async def get_daily_tasks(request: TaskGenerationInput):
     try:
         # Validate input
         if not request.interests:
             raise HTTPException(status_code=400, detail="At least one interest required")
         
+        if not request.adhd_type:
+            raise HTTPException(status_code=400, detail="ADHD type is required")
+
         # Select random interest
         selected_interest = random.choice(request.interests)
         
@@ -147,14 +166,17 @@ async def generate_daily_tasks(request: TaskGenerationInput):
             num_tasks=5
         )
         
+        # Get current date
+        today = datetime.datetime.now().strftime("%Y-%m-%d")
+        
         return {
             "email": request.email,
-            "date": datetime.datetime.now().isoformat(),
+            "date": today,
             "adhd_type": request.adhd_type,
             "selected_interest": selected_interest,
-            "tasks": tasks
+            "daily_tasks": tasks
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

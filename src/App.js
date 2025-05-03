@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from "react-route
 import Home from "./components/Home";
 import About from "./components/About";
 import Contact from "./components/Contact";
-import Tasks from "./components/Tasks";
+import DailyTasks from "./components/DailyTasks";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Login from "./components/Login";
@@ -46,7 +46,7 @@ const ContentWrapper = () => {
         <Route path="/" element={<Home />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/about" element={<About />} />
-        <Route path="/tasks" element={<Tasks />} />
+        <Route path="/tasks" element={<DailyTasks />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
         <Route path="/questionnaire" element={<Questionnaire />} />

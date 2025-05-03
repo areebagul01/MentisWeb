@@ -161,4 +161,37 @@ router.get('/interests', async (req, res) => {
   }
 });
 
+// Tasks
+router.post('/daily-tasks', async (req, res) => {
+  try {
+    const { email, adhd_type, interests } = req.body;
+    
+    const user = await User.findOne({ email }).lean();
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Generate tasks (replace with your model logic)
+    const daily_tasks = [
+      "Break task into 15-minute chunks",
+      "Use noise-cancelling headphones",
+      "Set visual timer for tasks"
+    ];
+
+    // Update user with generated tasks
+    await User.updateOne(
+      { email },
+      { $set: { dailyTasks: daily_tasks, lastTaskDate: new Date() } }
+    );
+
+    res.json({
+      daily_tasks,
+      selected_interest: user.interests[0],
+      date: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Tasks error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;
