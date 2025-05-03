@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './Interests.css';
 
 const Interests = ({ fromQuestionnaire }) => {
@@ -7,6 +7,10 @@ const Interests = ({ fromQuestionnaire }) => {
   const [selectedInterests, setSelectedInterests] = useState(
     Array(13).fill(false)
   );
+
+  // For Interest page along with Sidebar
+  const location = useLocation();
+  const fromQuestionnaireToInterest = location.state?.fromQuestionnaire;
 
   const interests = [
     'Physical Activity', 'Music', 'Games', 'Art And Creativity', 'Nature & Outdoors',
@@ -20,40 +24,67 @@ const Interests = ({ fromQuestionnaire }) => {
     setSelectedInterests(newSelection);
   };
 
-  const handleSave = () => {
-    // Navigation logic
-    if (fromQuestionnaire) {
-      navigate('/main');
-    } else {
-      navigate('/settings');
+  const handleSave = async () => {
+    try {
+      const userEmail = localStorage.getItem('userEmail');
+      const interestSelected = interests
+        .filter((_, index) => selectedInterests[index])
+        .map((interest) => interest);
+  
+      const response = await fetch('http://localhost:5000/api/users/interests', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: userEmail,
+          interestSelected 
+        }),
+      });
+  
+      if (!response.ok) throw new Error('Failed to save interests');
+  
+      // Navigate after successful save
+      if (fromQuestionnaire) {
+        navigate('/tasks');
+      } else {
+        navigate('/settings');
+      }
+  
+    } catch (err) {
+      console.error(err);
+      alert('Failed to save interests');
     }
   };
 
   return (
-    <div className="interests-container">
-      <h1>Select Your Interests</h1>
-      <div className="interests-grid">
-        {interests.map((interest, index) => (
-        <div 
-          key={interest}
-          className={`interest-card ${selectedInterests[index] ? 'selected' : ''}`}
-          onClick={() => toggleInterest(index)}
-        >
-          <div className="card-image">
-            <img
-              src={`/images/interests/${interest.toLowerCase().replace(/ /g, '_').replace(/&/g, 'and')}.jpg`}
-              alt={interest}
-              className="interest-image"
-            />
+    <div className={fromQuestionnaireToInterest ? "full-page" : ""}>
+      <div className="interests-container">
+        <h1>Select Your Interests</h1>
+        <div className="interests-grid">
+          {interests.map((interest, index) => (
+          <div 
+            key={interest}
+            className={`interest-card ${selectedInterests[index] ? 'selected' : ''}`}
+            onClick={() => toggleInterest(index)}
+          >
+            <div className="card-image">
+              <img
+                src={`/images/interests/${interest.toLowerCase().replace(/ /g, '_').replace(/&/g, 'and')}.jpg`}
+                alt={interest}
+                className="interest-image"
+              />
+            </div>
+            <div className="card-overlay"></div>
+            <h3 className="interest-title">{interest}</h3>
           </div>
-          <div className="card-overlay"></div>
-          <h3 className="interest-title">{interest}</h3>
+          ))}
         </div>
-        ))}
+        <button className="save-button" onClick={handleSave}>
+          Save Interests
+        </button>
       </div>
-      <button className="save-button" onClick={handleSave}>
-        Save Interests
-      </button>
+      {fromQuestionnaireToInterest && <h2>Finalize Your Preferences</h2>}
     </div>
   );
 };

@@ -36,3 +36,28 @@
     transform: rotate(360deg);
   }
 }
+
+/* App.css */
+.content-with-sidebar {
+  margin-left: 250px; /* Must match sidebar width */
+  padding: 20px;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* Ensure body doesn't have margin */
+body {
+  margin: 0;
+}
+
+.full-page {
+  padding: 20px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.content-with-sidebar {
+  margin-left: 250px;
+  padding: 20px;
+  transition: margin 0.3s ease;
+}

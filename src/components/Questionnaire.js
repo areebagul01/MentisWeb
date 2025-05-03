@@ -29,147 +29,202 @@ const questions = [
     { featureIndex: 24, type: "Childhood", text: "Do you frequently get distracted by unrelated thoughts or external stimuli?" }
   ];
 
-const Questionnaire = () => {
-  const navigate = useNavigate();
-  const [gender, setGender] = useState('');
-  const [dob, setDob] = useState('');
-  const [answers, setAnswers] = useState({});
-  const [errors, setErrors] = useState({});
-
-  const childhoodQuestions = questions.filter(q => q.type === 'Childhood');
-  const adulthoodQuestions = questions.filter(q => q.type === 'Adulthood');
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const newErrors = {};
-
-    if (!gender) newErrors.gender = 'Gender is required';
-    if (!dob) newErrors.dob = 'Date of Birth is required';
-    childhoodQuestions.concat(adulthoodQuestions).forEach(q => {
-      if (answers[q.featureIndex] === undefined) 
-        newErrors[q.featureIndex] = 'This question is required';
-    });
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    // Submit logic here
-    console.log({ gender, dob, answers });
-    navigate('/interests');
-  };
-
-  const handleAnswer = (featureIndex, value) => {
-    setAnswers(prev => ({ ...prev, [featureIndex]: value }));
-    setErrors(prev => ({ ...prev, [featureIndex]: null }));
-  };
-
-  return (
-    <div className="questionnaire-container">
-      <h1>ADHD Questionnaire</h1>
-      <form onSubmit={handleSubmit}>
-        {/* Personal Information Section */}
-        <div className="section">
-          <h2>Personal Information</h2>
-          
-          <div className="form-group">
-            <label>Gender:</label>
-            <select 
-              value={gender} 
-              onChange={(e) => {
-                setGender(e.target.value);
-                setErrors(prev => ({ ...prev, gender: null }));
-              }}
-              className={errors.gender ? 'error' : ''}
-            >
-              <option value="">Select Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-            </select>
-            {errors.gender && <span className="error-message">{errors.gender}</span>}
-          </div>
-
-          <div className="form-group">
-            <label>Date of Birth:</label>
-            <input
-              type="date"
-              value={dob}
-              onChange={(e) => {
-                setDob(e.target.value);
-                setErrors(prev => ({ ...prev, dob: null }));
-              }}
-              className={errors.dob ? 'error' : ''}
-            />
-            {errors.dob && <span className="error-message">{errors.dob}</span>}
-          </div>
-        </div>
-
-        {/* Childhood Questions Section */}
-        <div className="section">
-          <h2>Childhood Experiences (Before age 12)</h2>
-          {childhoodQuestions.map((q) => (
-            <div key={q.featureIndex} className="question-group">
-              <p>{q.text}</p>
-              <div className="button-group">
-                <button
-                  type="button"
-                  className={`answer-btn ${answers[q.featureIndex] === true ? 'selected' : ''}`}
-                  onClick={() => handleAnswer(q.featureIndex, true)}
-                >
-                  Yes
-                </button>
-                <button
-                  type="button"
-                  className={`answer-btn ${answers[q.featureIndex] === false ? 'selected' : ''}`}
-                  onClick={() => handleAnswer(q.featureIndex, false)}
-                >
-                  No
-                </button>
-              </div>
-              {errors[q.featureIndex] && (
-                <span className="error-message">{errors[q.featureIndex]}</span>
-              )}
+  const Questionnaire = () => {
+    const navigate = useNavigate();
+    const [gender, setGender] = useState('');
+    const [dob, setDob] = useState('');
+    const [answers, setAnswers] = useState({});
+    const [errors, setErrors] = useState({});
+    const [progress, setProgress] = useState(0);
+  
+    const childhoodQuestions = questions.filter(q => q.type === 'Childhood');
+    const adulthoodQuestions = questions.filter(q => q.type === 'Adulthood');
+  
+    const updateProgress = () => {
+      const total = questions.length + 2; // +2 for gender + dob
+      const answered = Object.keys(answers).length + (gender ? 1 : 0) + (dob ? 1 : 0);
+      setProgress(answered / total);
+    };
+  
+    const handleAnswer = (featureIndex, value) => {
+      setAnswers(prev => ({ ...prev, [featureIndex]: value }));
+      setErrors(prev => ({ ...prev, [featureIndex]: null }));
+      updateProgress();
+    };
+  
+    const diagnose = async () => {
+      const newErrors = {};
+      if (!gender) newErrors.gender = 'Gender is required';
+      if (!dob) newErrors.dob = 'Date of Birth is required';
+    
+      questions.forEach(q => {
+        if (answers[q.featureIndex] === undefined) {
+          newErrors[q.featureIndex] = 'This question is required';
+        }
+      });
+    
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        return;
+      }
+    
+      const data = {
+        dob: dob,
+        answers: questions.reduce((acc, q) => {
+          acc[q.featureIndex] = answers[q.featureIndex] ? 1 : 0;
+          return acc;
+        }, {})
+      };
+    
+      try {
+        const response = await fetch('http://192.168.100.55:8000/predict', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+    
+        if (!response.ok) {
+          throw new Error('Failed to connect to server');
+        }
+        else {
+          console.log("Response received");
+        }
+    
+        const resData = await response.json();
+        const result = resData.result;
+    
+        const resultMap = ['Combined', 'False', 'Hyperactive', 'Inattentive'];
+        const diagnosis = resultMap[result] || 'Unknown';
+    
+        localStorage.setItem('adhdtype', diagnosis);
+        localStorage.setItem('dob', dob);
+        localStorage.setItem('gender', gender);
+    
+        if (diagnosis === 'False') {
+          alert('You do not have ADHD. Redirecting to launch screen.');
+          navigate('/launch');
+        } else {
+          alert(`Diagnosis: ${diagnosis}`);
+          navigate('/interests', {
+            state: { fromQuestionnaire: true }
+          });
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    };    
+  
+    return (
+      <div className="questionnaire-container">
+        <h1>ADHD Questionnaire</h1>
+        {/* <progress value={progress} max={1}></progress> */}
+  
+        <form onSubmit={(e) => { e.preventDefault(); diagnose(); }}>
+          {/* Personal Info */}
+          <div className="section">
+            <h2>Personal Information</h2>
+  
+            <div className="form-group">
+              <label>Gender:</label>
+              <select
+                value={gender}
+                onChange={(e) => {
+                  setGender(e.target.value);
+                  setErrors(prev => ({ ...prev, gender: null }));
+                  updateProgress();
+                }}
+                className={errors.gender ? 'error' : ''}
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+              {errors.gender && <span className="error-message">{errors.gender}</span>}
             </div>
-          ))}
-        </div>
-
-        {/* Adulthood Questions Section */}
-        <div className="section">
-          <h2>Adulthood Experiences (Last 6 Months)</h2>
-          {adulthoodQuestions.map((q) => (
-            <div key={q.featureIndex} className="question-group">
-              <p>{q.text}</p>
-              <div className="button-group">
-                <button
-                  type="button"
-                  className={`answer-btn ${answers[q.featureIndex] === true ? 'selected' : ''}`}
-                  onClick={() => handleAnswer(q.featureIndex, true)}
-                >
-                  Yes
-                </button>
-                <button
-                  type="button"
-                  className={`answer-btn ${answers[q.featureIndex] === false ? 'selected' : ''}`}
-                  onClick={() => handleAnswer(q.featureIndex, false)}
-                >
-                  No
-                </button>
-              </div>
-              {errors[q.featureIndex] && (
-                <span className="error-message">{errors[q.featureIndex]}</span>
-              )}
+  
+            <div className="form-group">
+              <label>Date of Birth:</label>
+              <input
+                type="date"
+                value={dob}
+                onChange={(e) => {
+                  setDob(e.target.value);
+                  setErrors(prev => ({ ...prev, dob: null }));
+                  updateProgress();
+                }}
+                className={errors.dob ? 'error' : ''}
+              />
+              {errors.dob && <span className="error-message">{errors.dob}</span>}
             </div>
-          ))}
-        </div>
-
-        <button type="submit" className="submit-btn">
-          Get Diagnosis
-        </button>
-      </form>
-    </div>
-  );
-};
-
-export default Questionnaire;
+          </div>
+  
+          {/* Childhood */}
+          <div className="section">
+            <h2>Childhood Experiences (Before age 12)</h2>
+            {childhoodQuestions.map((q) => (
+              <div key={q.featureIndex} className="question-group">
+                <p>{q.text}</p>
+                <div className="button-group">
+                  <button
+                    type="button"
+                    className={`answer-btn ${answers[q.featureIndex] === true ? 'selected' : ''}`}
+                    onClick={() => handleAnswer(q.featureIndex, true)}
+                  >
+                    Yes
+                  </button>
+                  <button
+                    type="button"
+                    className={`answer-btn ${answers[q.featureIndex] === false ? 'selected' : ''}`}
+                    onClick={() => handleAnswer(q.featureIndex, false)}
+                  >
+                    No
+                  </button>
+                </div>
+                {errors[q.featureIndex] && (
+                  <span className="error-message">{errors[q.featureIndex]}</span>
+                )}
+              </div>
+            ))}
+          </div>
+  
+          {/* Adulthood */}
+          <div className="section">
+            <h2>Adulthood Experiences (Last 6 Months)</h2>
+            {adulthoodQuestions.map((q) => (
+              <div key={q.featureIndex} className="question-group">
+                <p>{q.text}</p>
+                <div className="button-group">
+                  <button
+                    type="button"
+                    className={`answer-btn ${answers[q.featureIndex] === true ? 'selected' : ''}`}
+                    onClick={() => handleAnswer(q.featureIndex, true)}
+                  >
+                    Yes
+                  </button>
+                  <button
+                    type="button"
+                    className={`answer-btn ${answers[q.featureIndex] === false ? 'selected' : ''}`}
+                    onClick={() => handleAnswer(q.featureIndex, false)}
+                  >
+                    No
+                  </button>
+                </div>
+                {errors[q.featureIndex] && (
+                  <span className="error-message">{errors[q.featureIndex]}</span>
+                )}
+              </div>
+            ))}
+          </div>
+  
+          <button type="submit" className="submit-btn">
+            Get Diagnosis
+          </button>
+        </form>
+      </div>
+    );
+  };
+  
+  export default Questionnaire;
