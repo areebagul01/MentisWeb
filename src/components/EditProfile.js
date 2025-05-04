@@ -96,9 +96,9 @@ const EditProfile = () => {
       <div className="profile-background" />
       <div className="profile-content">
         <div className="avatar-section">
-          <div className="avatar">
+          {/* <div className="avatar">
             <i className="fas fa-user"></i>
-          </div>
+          </div> */}
           <h2 className="username">{username}</h2>
           <p className="user-info">
             {calculateAge(dateOfBirth)}

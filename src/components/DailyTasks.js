@@ -4,6 +4,7 @@ import './DailyTasks.css';
 
 const DailyTasks = () => {
   const [tasks, setTasks] = useState([]);
+  const [taskStatus, setTaskStatus] = useState({});  // State to track task completion
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -23,6 +24,7 @@ const DailyTasks = () => {
 
         if (cachedDate === today && cachedTasks.length > 0) {
           setTasks(cachedTasks);
+          loadTaskStatus();  // Load existing task status from localStorage
           setIsLoading(false);
           return;
         }
@@ -44,6 +46,8 @@ const DailyTasks = () => {
         localStorage.setItem(cacheKeys.date, today);
         
         setTasks(data.daily_tasks);
+        setIsLoading(false);
+        loadTaskStatus();  // Load task status after fetching tasks
       } catch (err) {
         alert('Error: ' + err.message);
       } finally {
@@ -51,8 +55,23 @@ const DailyTasks = () => {
       }
     };
 
+    const loadTaskStatus = () => {
+      const savedStatus = JSON.parse(localStorage.getItem('taskStatus') || '{}');
+      setTaskStatus(savedStatus);  // Load task completion status from localStorage
+    };
+
     fetchTasks();
   }, []);
+
+  const handleCheck = (taskName, isChecked) => {
+    const updatedTaskStatus = { ...taskStatus, [taskName]: isChecked ? 1 : 0 };
+    setTaskStatus(updatedTaskStatus);  // Update the state immediately
+    localStorage.setItem('taskStatus', JSON.stringify(updatedTaskStatus));  // Update localStorage
+  };
+
+  const getTaskStatus = (taskName) => {
+    return taskStatus[taskName] === 1;
+  };
 
   return (
     <div className="daily-tasks-container">
@@ -68,7 +87,12 @@ const DailyTasks = () => {
       ) : (
         <div className="tasks-list">
           {tasks.map((task, index) => (
-            <TaskCard key={index} task={task} />
+            <TaskCard 
+              key={index} 
+              task={task} 
+              isChecked={getTaskStatus(task)} 
+              onCheck={handleCheck} 
+            />
           ))}
         </div>
       )}

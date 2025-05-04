@@ -88,6 +88,13 @@ const SignUp = () => {
           <button type="submit" className="auth-button">
             Sign Up
           </button>
+          <button 
+            type="button"
+            className="auth-button create-account-button"
+            onClick={() => navigate('/login')}
+          >
+            Login to existing account
+          </button>
         </form>
 
         {/* <div className="google-auth">

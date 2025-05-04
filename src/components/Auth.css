@@ -76,3 +76,15 @@
     width: 24px;
     height: 24px;
   }
+
+  .create-account-button {
+    background-color: transparent;
+    color: teal;
+    border: 2px 0px;
+    margin-top: 15px;
+  }
+  
+  .create-account-button:hover {
+    background-color: #f0f0f0;
+    color: rgb(0, 77, 77);
+  }
