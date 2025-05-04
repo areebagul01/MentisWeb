@@ -4,11 +4,28 @@ import './EditProfile.css';
 
 const EditProfile = () => {
   const navigate = useNavigate();
-  const [user] = useState({
+  const [formData, setFormData] = useState({
     username: "JohnDoe",
-    info: "28M • Combined",
-    email: "john@example.com"
+    age: 28,
+    email: "john@example.com",
+    interests: "Music, Reading, Hiking",
+    notifications: true,
+    darkMode: false,
   });
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleSave = () => {
+    // Simulate saving logic (e.g., API call)
+    alert('Profile updated successfully!');
+    // You can navigate or show success message here
+  };
 
   const handleLogout = () => {
     navigate('/login');
@@ -22,30 +39,68 @@ const EditProfile = () => {
             <i className="bi bi-person-circle"></i>
           </div>
           <div className="user-info">
-            <h2 className="username">{user.username}</h2>
-            <p className="user-details">{user.info}</p>
+            <input
+              type="text"
+              name="username"
+              className="input-field username-input"
+              value={formData.username}
+              onChange={handleChange}
+            />
+            <input
+              type="number"
+              name="age"
+              className="input-field age-input"
+              value={formData.age}
+              onChange={handleChange}
+              placeholder="Age"
+            />
           </div>
         </div>
       </div>
 
-      <div className="settings-list">
-        
-        <div className="setting-item" onClick={() => navigate('/edit-profile')}>
-          <i className="bi bi-pencil-square"></i>
-          <span>Edit Profile</span>
-        </div>
+      <div className="form-section">
+        <label>Email</label>
+        <input
+          type="email"
+          name="email"
+          className="input-field"
+          value={formData.email}
+          onChange={handleChange}
+        />
 
-        <div className="setting-item" onClick={() => navigate('/about')}>
-          <i className="bi bi-pencil-square"></i>
-          <span>About & Support</span>
-        </div>
+        <label>Interests</label>
+        <textarea
+          name="interests"
+          className="input-field"
+          value={formData.interests}
+          onChange={handleChange}
+          rows={3}
+        />
 
+        <label>
+          <input
+            type="checkbox"
+            name="notifications"
+            checked={formData.notifications}
+            onChange={handleChange}
+          />
+          Enable Notifications
+        </label>
+
+        <label>
+          <input
+            type="checkbox"
+            name="darkMode"
+            checked={formData.darkMode}
+            onChange={handleChange}
+          />
+          Enable Dark Mode
+        </label>
       </div>
 
-      <div className="logout-section">
-        <button className="logout-button" onClick={handleLogout}>
-          Logout
-        </button>
+      <div className="button-section">
+        <button className="edit-save-button" onClick={handleSave}>Save Changes</button>
+        <button className="logout-button" onClick={handleLogout}>Logout</button>
       </div>
     </div>
   );

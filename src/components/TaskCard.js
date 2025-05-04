@@ -3,7 +3,7 @@ import './TaskCard.css';
 
 const TaskCard = ({ task }) => {
   const [checked, setChecked] = useState(false);
-  const [reaction, setReaction] = useState(null);
+  //const [reaction, setReaction] = useState(null);
 
   return (
     <div className={`task-card ${checked ? 'checked' : ''}`}>

@@ -5,17 +5,23 @@ import './DailyTasks.css';
 const DailyTasks = () => {
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  //const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchTasks = async () => {
       try {
         const userEmail = localStorage.getItem('userEmail');
-        const cachedDate = localStorage.getItem('taskDate');
         const today = new Date().toISOString().split('T')[0];
         
-        if (cachedDate === today) {
-          const cachedTasks = JSON.parse(localStorage.getItem('dailyTasks') || []);
+        // User-specific cache keys
+        const cacheKeys = {
+          date: `${userEmail}_taskDate`,
+          tasks: `${userEmail}_dailyTasks`
+        };
+
+        const cachedDate = localStorage.getItem(cacheKeys.date);
+        const cachedTasks = JSON.parse(localStorage.getItem(cacheKeys.tasks) || '[]');
+
+        if (cachedDate === today && cachedTasks.length > 0) {
           setTasks(cachedTasks);
           setIsLoading(false);
           return;
@@ -32,11 +38,13 @@ const DailyTasks = () => {
         });
 
         const data = await response.json();
-        localStorage.setItem('dailyTasks', JSON.stringify(data.daily_tasks));
-        localStorage.setItem('taskDate', today);
+        
+        // Store with user-specific keys
+        localStorage.setItem(cacheKeys.tasks, JSON.stringify(data.daily_tasks));
+        localStorage.setItem(cacheKeys.date, today);
+        
         setTasks(data.daily_tasks);
       } catch (err) {
-        //setError(err.message);
         alert('Error: ' + err.message);
       } finally {
         setIsLoading(false);
@@ -46,8 +54,6 @@ const DailyTasks = () => {
     fetchTasks();
   }, []);
 
-  //if (error) return <ErrorPopup message={error} onRetry={() => window.location.reload()} />;
-  
   return (
     <div className="daily-tasks-container">
       <h2>Daily Tasks</h2>

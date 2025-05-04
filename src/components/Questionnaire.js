@@ -116,7 +116,7 @@ const questions = [
         
         if (diagnosis === 'No ADHD') {
           alert('You do not have ADHD. Redirecting to launch screen.');
-          navigate('/launch');
+          navigate('/');
         } else {
           alert(`Diagnosis: ${diagnosis}`);
           navigate('/interests', {
