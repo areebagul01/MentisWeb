@@ -20,6 +20,8 @@ const Interests = ({ fromQuestionnaire }) => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [initialInterests, setInitialInterests] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+
 
   useEffect(() => {
     const fetchInterests = async () => {
@@ -112,26 +114,40 @@ const Interests = ({ fromQuestionnaire }) => {
 
   return (
     <div className={fromQuestionnaireToInterest ? "full-page" : ""}>
+      <div className="search-bar">
+        <input
+          type="text"
+          placeholder="Search interests..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
       <div className="interests-container">
         <h1>Your Interests</h1>
         <div className="interests-grid">
-          {interests.map((interest, index) => (
-            <div 
-              key={interest}
-              className={`interest-card ${selectedInterests[index] ? 'selected' : ''}`}
-              onClick={() => toggleInterest(index)}
-            >
-              <div className="card-image">
-                <img
-                  src={`/images/interests/${interest.toLowerCase().replace(/ /g, '_').replace(/&/g, 'and')}.jpg`}
-                  alt={interest}
-                  className={`interest-image ${selectedInterests[index] ? 'selected' : ''}`}
-                />
+          {interests.map((interest, index) => {
+            const isVisible = interest.toLowerCase().includes(searchQuery.toLowerCase());
+            
+            return (
+              <div 
+                key={interest}
+                className={`interest-card ${selectedInterests[index] ? 'selected' : ''} ${
+                  !isVisible ? 'hidden' : ''
+                }`}
+                onClick={() => toggleInterest(index)}
+              >
+                <div className="card-image">
+                  <img
+                    src={`/images/interests/${interest.toLowerCase().replace(/ /g, '_').replace(/&/g, 'and')}.jpg`}
+                    alt={interest}
+                    className={`interest-image ${selectedInterests[index] ? 'selected' : ''}`}
+                  />
+                </div>
+                <div className={`card-overlay ${selectedInterests[index] ? 'active' : ''}`}></div>
+                <h3 className="interest-title">{interest}</h3>
               </div>
-              <div className={`card-overlay ${selectedInterests[index] ? 'active' : ''}`}></div>
-              <h3 className="interest-title">{interest}</h3>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <button className="save-button" onClick={handleSave}>
           {initialInterests.length > 0 ? 'Update Interests' : 'Save Interests'}

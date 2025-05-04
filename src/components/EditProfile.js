@@ -1,105 +1,115 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './EditProfile.css';
+import React, { useEffect, useState } from "react";
+import "./EditProfile.css";
 
 const EditProfile = () => {
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    username: "JohnDoe",
-    age: 28,
-    email: "john@example.com",
-    interests: "Music, Reading, Hiking",
-    notifications: true,
-    darkMode: false,
-  });
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [username, setUsername] = useState("Loading...");
+  const [userInfo, setUserInfo] = useState("Loading...");
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
+  useEffect(() => {
+    // Simulate fetching from local storage and backend
+    const fetchUserDetails = async () => {
+      const email = localStorage.getItem("userEmail");
 
-  const handleSave = () => {
-    // Simulate saving logic (e.g., API call)
-    alert('Profile updated successfully!');
-    // You can navigate or show success message here
+      if (email) {
+        // Replace this with actual API call
+        const mockData = {
+          username: "Noor",
+          dateOfBirth: "2002-06-01",
+          gender: "Female",
+          adhdtype: "Inattentive",
+        };
+
+        const dob = new Date(mockData.dateOfBirth);
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        if (
+          today.getMonth() < dob.getMonth() ||
+          (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate())
+        ) {
+          age--;
+        }
+
+        const genderInitial = mockData.gender.charAt(0).toUpperCase();
+        const adhdType = mockData.adhdtype;
+
+        setUsername(mockData.username);
+        setUserInfo(`${age}${genderInitial} • ${adhdType}`);
+      } else {
+        setUsername("Not logged in");
+        setUserInfo("Unknown details");
+      }
+    };
+
+    fetchUserDetails();
+  }, []);
+
+  const handleThemeToggle = () => {
+    setIsDarkMode(!isDarkMode);
+    document.body.classList.toggle("dark-theme", !isDarkMode);
   };
 
   const handleLogout = () => {
-    navigate('/login');
+    localStorage.removeItem("userEmail");
+    window.location.href = "/"; // Redirect to login or landing page
   };
 
   return (
-    <div className="settings-container">
-      <div className="profile-section">
-        <div className="avatar-container">
-          <div className="avatar-placeholder">
-            <i className="bi bi-person-circle"></i>
+    <div className="edit-profile-container">
+      <div className="profile-background" />
+      <div className="profile-content">
+        <div className="avatar-section">
+          <div className="avatar">
+            <i className="fas fa-user"></i>
           </div>
-          <div className="user-info">
+          <h2 className="username">{username}</h2>
+          <p className="user-info">{userInfo}</p>
+        </div>
+
+        <div className="setting-row">
+          <span className="setting-label">Mode</span>
+          <label className="switch">
+            <input type="checkbox" checked={isDarkMode} onChange={handleThemeToggle} />
+            <span className="slider round"></span>
+          </label>
+        </div>
+
+        {/* Replace the settings-options div with this: */}
+        <div className="edit-fields">
+          <label className="edit-label">
+            Name
             <input
               type="text"
-              name="username"
-              className="input-field username-input"
-              value={formData.username}
-              onChange={handleChange}
+              className="edit-input"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
             />
+          </label>
+
+          <label className="edit-label">
+            Email
+            <input
+              type="email"
+              className="edit-input"
+              value={localStorage.getItem("userEmail") || ""}
+              disabled // if you want to make it editable, remove this line
+            />
+          </label>
+
+          <label className="edit-label">
+            Age
             <input
               type="number"
-              name="age"
-              className="input-field age-input"
-              value={formData.age}
-              onChange={handleChange}
-              placeholder="Age"
+              className="edit-input"
+              value={userInfo.match(/\d+/)?.[0] || ""}
+              onChange={(e) => {
+                const updatedInfo = userInfo.replace(/\d+/, e.target.value);
+                setUserInfo(updatedInfo);
+              }}
             />
-          </div>
+          </label>
         </div>
-      </div>
 
-      <div className="form-section">
-        <label>Email</label>
-        <input
-          type="email"
-          name="email"
-          className="input-field"
-          value={formData.email}
-          onChange={handleChange}
-        />
-
-        <label>Interests</label>
-        <textarea
-          name="interests"
-          className="input-field"
-          value={formData.interests}
-          onChange={handleChange}
-          rows={3}
-        />
-
-        <label>
-          <input
-            type="checkbox"
-            name="notifications"
-            checked={formData.notifications}
-            onChange={handleChange}
-          />
-          Enable Notifications
-        </label>
-
-        <label>
-          <input
-            type="checkbox"
-            name="darkMode"
-            checked={formData.darkMode}
-            onChange={handleChange}
-          />
-          Enable Dark Mode
-        </label>
-      </div>
-
-      <div className="button-section">
-        <button className="edit-save-button" onClick={handleSave}>Save Changes</button>
         <button className="logout-button" onClick={handleLogout}>Logout</button>
       </div>
     </div>
