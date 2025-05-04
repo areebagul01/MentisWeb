@@ -1,5 +1,5 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import React, { useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import Home from "./components/Home";
 import About from "./components/About";
 import Contact from "./components/Contact";
@@ -18,24 +18,22 @@ const ConditionalNavbar = () => {
   const hideNavbarPaths = ['/login', '/signup', '/questionnaire'];
   const sidebarPaths = ['/tasks', '/interests', '/settings', '/edit-profile'];
 
-  // Check if interests page is coming from questionnaire
   const isFromQuestionnaire = location.pathname === '/interests' && 
                             location.state?.fromQuestionnaire;
 
-  if (isFromQuestionnaire) return null;  // Hide all navigation
-  
+  if (isFromQuestionnaire) return null;
+
   if (sidebarPaths.includes(location.pathname)) {
     return <Sidebar />;
   }
-  
+
   return !hideNavbarPaths.includes(location.pathname) ? <Navbar /> : null;
 };
 
 const ContentWrapper = () => {
   const location = useLocation();
   const sidebarPaths = ['/tasks', '/interests', '/settings', '/edit-profile'];
-  
-  // Determine if content needs sidebar spacing
+
   const isFromQuestionnaire = location.pathname === '/interests' && 
                             location.state?.fromQuestionnaire;
   const hasSidebar = sidebarPaths.includes(location.pathname) && !isFromQuestionnaire;
@@ -58,12 +56,37 @@ const ContentWrapper = () => {
 };
 
 function App() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const { exp } = JSON.parse(atob(token.split('.')[1]));
+        if (Date.now() >= exp * 1000) {
+          localStorage.removeItem("token");
+          navigate('/login');
+        }
+      } catch (err) {
+        console.error("Invalid token format", err);
+        localStorage.removeItem("token");
+        navigate('/login');
+      }
+    }
+  }, [navigate]);
+
   return (
-    <Router>
+    <>
       <ConditionalNavbar />
       <ContentWrapper />
-    </Router>
+    </>
   );
 }
 
-export default App;
+const AppWithRouter = () => (
+  <Router>
+    <App />
+  </Router>
+);
+
+export default AppWithRouter;

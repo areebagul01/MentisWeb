@@ -14,6 +14,7 @@ const Sidebar = () => {
   const handleLogout = () => {
     // Add logout logic here
     navigate('/login');
+    localStorage.setItem("userEmail", "");
   };
 
   return (

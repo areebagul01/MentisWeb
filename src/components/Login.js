@@ -17,7 +17,7 @@ const Login = () => {
         email: email.trim().toLowerCase(),
         password: password.trim()
       };
-      
+
       const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -25,10 +25,11 @@ const Login = () => {
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) throw new Error(data.message || 'Login failed');
 
       // Store user data in localStorage
+      localStorage.setItem('authToken', data.token); // Store JWT token
       localStorage.setItem('userEmail', data.email);
       localStorage.setItem('username', data.username);
       localStorage.setItem('adhdtype', data.adhdtype || '');
@@ -52,6 +53,7 @@ const Login = () => {
       localStorage.removeItem('gender');
       localStorage.removeItem('interests');
       localStorage.removeItem('userId');
+      localStorage.removeItem('authToken'); // Clear token as well
     }
   };
 

@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 const User = require('../models/User');
 
 // Login
@@ -18,7 +20,15 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Incorrect Password' });
     }
 
+    // Here we will generate the token
+    const token = jwt.sign(
+      { userId: user._id, email: user.email },  // Payload (you can include any data you want)
+      process.env.JWT_SECRET,                        // Secret key (replace this with an actual secret key)
+      { expiresIn: '1m' }                       // Token expiration time (optional)
+    );
+
     res.json({
+      token,                                    // Send the token back to the client
       _id: user._id,
       username: user.username,
       email: user.email,
