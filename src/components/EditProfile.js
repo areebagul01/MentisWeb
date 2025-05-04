@@ -1,48 +1,81 @@
+// EditProfile.jsx
 import React, { useEffect, useState } from "react";
 import "./EditProfile.css";
 
 const EditProfile = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [username, setUsername] = useState("Loading...");
-  const [userInfo, setUserInfo] = useState("Loading...");
+  const [username, setUsername] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [gender, setGender] = useState("");
+  const [adhdType, setAdhdType] = useState("");
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate fetching from local storage and backend
     const fetchUserDetails = async () => {
-      const email = localStorage.getItem("userEmail");
+      const userEmail = localStorage.getItem("userEmail");
+      if (!userEmail) return;
 
-      if (email) {
-        // Replace this with actual API call
-        const mockData = {
-          username: "Noor",
-          dateOfBirth: "2002-06-01",
-          gender: "Female",
-          adhdtype: "Inattentive",
-        };
-
-        const dob = new Date(mockData.dateOfBirth);
-        const today = new Date();
-        let age = today.getFullYear() - dob.getFullYear();
-        if (
-          today.getMonth() < dob.getMonth() ||
-          (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate())
-        ) {
-          age--;
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/auth/user?email=${userEmail}`
+        );
+        
+        if (!response.ok) {
+          const errorData = await response.json(); // Need to await the JSON parsing
+          console.error('Server Error:', errorData.message || 'No error message provided');
+          console.log(response.status);
+          throw new Error(errorData.message || 'Failed to fetch user details');
         }
-
-        const genderInitial = mockData.gender.charAt(0).toUpperCase();
-        const adhdType = mockData.adhdtype;
-
-        setUsername(mockData.username);
-        setUserInfo(`${age}${genderInitial} • ${adhdType}`);
-      } else {
-        setUsername("Not logged in");
-        setUserInfo("Unknown details");
+        
+        const userData = await response.json();
+        setUsername(userData.username);
+        setEmail(userData.email);
+        setDateOfBirth(userData.dateOfBirth?.split("T")[0] || "");
+        setGender(userData.gender || "");
+        setAdhdType(userData.adhdtype || "");
+      } catch (error) {
+        alert("Error loading profile: " + error.message);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchUserDetails();
   }, []);
+
+  const calculateAge = (dob) => {
+    if (!dob) return 0;
+    const today = new Date();
+    const birthDate = new Date(dob);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const handleSave = async () => {
+    try {
+      const userEmail = localStorage.getItem("userEmail");
+      const response = await fetch("http://localhost:5000/api/auth/update-profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: userEmail,
+          username,
+          dateOfBirth,
+          gender
+        })
+      });
+
+      if (!response.ok) throw new Error("Failed to update profile");
+      alert("Profile updated successfully!");
+    } catch (error) {
+      alert("Error updating profile: " + error.message);
+    }
+  };
 
   const handleThemeToggle = () => {
     setIsDarkMode(!isDarkMode);
@@ -51,8 +84,12 @@ const EditProfile = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("userEmail");
-    window.location.href = "/"; // Redirect to login or landing page
+    window.location.href = "/";
   };
+
+  if (loading) {
+    return <div className="loading">Loading profile...</div>;
+  }
 
   return (
     <div className="edit-profile-container">
@@ -63,7 +100,10 @@ const EditProfile = () => {
             <i className="fas fa-user"></i>
           </div>
           <h2 className="username">{username}</h2>
-          <p className="user-info">{userInfo}</p>
+          <p className="user-info">
+            {calculateAge(dateOfBirth)}
+            {gender ? gender.charAt(0).toUpperCase() : ""} • {adhdType}
+          </p>
         </div>
 
         <div className="setting-row">
@@ -74,7 +114,6 @@ const EditProfile = () => {
           </label>
         </div>
 
-        {/* Replace the settings-options div with this: */}
         <div className="edit-fields">
           <label className="edit-label">
             Name
@@ -91,26 +130,44 @@ const EditProfile = () => {
             <input
               type="email"
               className="edit-input"
-              value={localStorage.getItem("userEmail") || ""}
-              disabled // if you want to make it editable, remove this line
+              value={email}
+              disabled
             />
           </label>
 
           <label className="edit-label">
-            Age
+            Date of Birth
             <input
-              type="number"
+              type="date"
               className="edit-input"
-              value={userInfo.match(/\d+/)?.[0] || ""}
-              onChange={(e) => {
-                const updatedInfo = userInfo.replace(/\d+/, e.target.value);
-                setUserInfo(updatedInfo);
-              }}
+              value={dateOfBirth}
+              onChange={(e) => setDateOfBirth(e.target.value)}
             />
+          </label>
+
+          <label className="edit-label">
+            Gender
+            <select
+              className="edit-input"
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
+            >
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
           </label>
         </div>
 
-        <button className="logout-button" onClick={handleLogout}>Logout</button>
+        {/* <div className="button-group"> */}
+          <button className="save-button" onClick={handleSave}>
+            Save Changes
+          </button>
+          <button className="save-button" onClick={handleLogout}>
+            Logout
+          </button>
+        {/* </div> */}
       </div>
     </div>
   );

@@ -84,13 +84,13 @@ const Login = () => {
           </button>
         </form>
 
-        <div className="google-auth">
+        {/* <div className="google-auth">
           <button className="google-button">
             <img src="https://img.icons8.com/color/48/000000/google-logo.png" 
                  alt="Google logo" />
             Continue with Google
           </button>
-        </div>
+        </div> */}
       </div>
 
       <img src={BottomImage} alt="Decoration bottom" className="bottom-image" />

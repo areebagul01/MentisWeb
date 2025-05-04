@@ -97,7 +97,7 @@ async def predict_adhd(input_data: DiagnosisInput):
 # TASK GENERATION ENDPOINTS
 # -----------------------------------------------------------------------------------------------------
 
-def generate_tasks(adhd_type: str, interest: str, num_tasks: int = 5):
+def generate_tasks(adhd_type: str, interest: str, num_tasks: int = 8):
     try:
         prompt = f"Generate ADHD-friendly tasks for {adhd_type} subtype focusing on {interest}:\n"
         
@@ -163,7 +163,7 @@ async def get_daily_tasks(request: TaskGenerationInput):
         tasks = generate_tasks(
             adhd_type=request.adhd_type,
             interest=selected_interest,
-            num_tasks=5
+            num_tasks=8
         )
         
         # Get current date

@@ -55,8 +55,8 @@ function Home() {
           <div className="footer-section">
             <h4>Quick Links</h4>
             <Link to="/about">About Us</Link>
-            <Link to="/contact">Contact</Link>
-            <Link to="/privacy">Privacy Policy</Link>
+            <Link>Contact</Link>
+            <Link>Privacy Policy</Link>
           </div>
           
           <div className="footer-section">
@@ -66,7 +66,7 @@ function Home() {
           </div>
         </div>
         <div className="footer-bottom">
-          <p>© 2023 Mentis. All rights reserved.</p>
+          <p>© 2025 Mentis. All rights reserved.</p>
         </div>
       </footer>
     </div>

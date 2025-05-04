@@ -194,4 +194,48 @@ router.post('/daily-tasks', async (req, res) => {
   }
 });
 
+// For getting user details
+router.get('/user', async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) return res.status(400).json({ message: 'Email is required' });
+    console.log(email);
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    console.log(user);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    res.json({
+      username: user.username,
+      email: user.email,
+      dateOfBirth: user.dateOfBirth,
+      gender: user.gender,
+      adhdtype: user.adhdtype
+    });
+  } catch (error) {
+    console.error('User fetch error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.put('/update-profile', async (req, res) => {
+  try {
+    const { email, username, dateOfBirth, gender } = req.body;
+    if (!email) return res.status(400).json({ message: 'Email is required' });
+
+    const updatedUser = await User.findOneAndUpdate(
+      { email: email.toLowerCase().trim() },
+      { $set: { username, dateOfBirth, gender } },
+      { new: true }
+    );
+
+    if (!updatedUser) return res.status(404).json({ message: 'User not found' });
+
+    res.json({ message: 'Profile updated successfully' });
+  } catch (error) {
+    console.error('Profile update error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
